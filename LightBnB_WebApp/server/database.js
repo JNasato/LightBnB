@@ -105,11 +105,11 @@ const getAllProperties = function(options, limit = 10) {
   }
 
   if (options.owner_id) {
-    queryParams.push(`%${options.owner_id}%`);
+    queryParams.push(options.owner_id);
     if (queryParams.length > 1) {
-      queryString += `AND owner_id LIKE $${queryParams.length} `;
+      queryString += `AND owner_id = $${queryParams.length} `;
     } else {
-      queryString += `WHERE owner_id LIKE $${queryParams.length} `;
+      queryString += `WHERE owner_id = $${queryParams.length} `;
     }
   }
 
@@ -162,9 +162,20 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  let queryParams = [];
+  for (let p in property) {
+    queryParams.push(property[p]);
+  }
+
+  let queryString = `
+    INSERT INTO properties (title, description, parking_spaces, number_of_bathrooms, number_of_bedrooms, cost_per_night, thumbnail_photo_url, cover_photo_url, street, country, city, province, post_code, owner_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+    RETURNING *;
+  `
+
+  console.log(queryString, queryParams);
+
+  return pool.query(queryString, queryParams)
+  .then(res => res.rows[0]);
 }
 exports.addProperty = addProperty;
