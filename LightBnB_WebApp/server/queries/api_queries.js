@@ -26,6 +26,21 @@ const getAllReservations = function(guest_id, limit = 10) {
 }
 exports.getAllReservations = getAllReservations;
 
+const addReservation = function(reservation) {
+  let queryParams = [reservation.start_date, reservation.end_date, reservation.owner_id];
+
+  let queryString = `
+    INSERT INTO reservations (start_date, end_date, owner_id)
+    VALUES ($1, $2, $3)
+    RETURNING *;
+  `
+
+  console.log(queryString, queryParams);
+
+  return pool.query(queryString, queryParams)
+  .then(res => res.rows[0]);
+}
+
 /// Properties --------------------------------------------------------------------------------
 
 /**
